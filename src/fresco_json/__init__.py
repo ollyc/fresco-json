@@ -12,6 +12,7 @@ from collections import MutableMapping
 from functools import wraps, partial
 from operator import attrgetter
 
+from zope.component import getAdapter, queryAdapter
 from zope.interface import Interface
 from fresco import context, POST, PUT
 from fresco import Response
@@ -116,7 +117,7 @@ def json_view():
 
 
 def json_dump_default(ob, dumper=json.dumps):
-    adapter = IJSONDumpable(ob, None)
+    adapter = queryAdapter(ob, IJSONDumpable, default=None)
 
     if adapter is None:
         return ob
@@ -126,9 +127,7 @@ def json_dump_default(ob, dumper=json.dumps):
     if not isinstance(result, MutableMapping):
         raise AssertionError("Expected a MutableMapping, got %r" % (result,))
 
-    result['__json_class__'] = (adapter.__class__.__module__ + '.' +
-                                adapter.__class__.__name__ + ':' +
-                                ob.__class__.__module__ + '.'
+    result['__json_class__'] = (ob.__class__.__module__ + '.'
                                 + ob.__class__.__name__)
     return result
 
@@ -141,10 +140,11 @@ def class_by_name(name):
 
 def json_load_object_hook(data):
     if '__json_class__' in data:
-        adapter_class, ob_class = map(class_by_name,
-                                      data.pop('__json_class__').split(':'))
-        adapter = adapter_class(None)
-        return adapter.to_python(ob_class, data)
+        ob_class = map(class_by_name, data.pop('__json_class__'))
+        ob = object.__new__(ob_class)
+        adapter = getAdapter(ob, IJSONLoadable)
+        adapter.from_json_repr(data)
+        return ob
     return data
 
 json_dump = partial(json.dump, default=json_dump_default)
