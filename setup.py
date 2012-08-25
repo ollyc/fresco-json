@@ -6,7 +6,7 @@ import os
 import re
 from setuptools import setup, find_packages
 
-VERSIONFILE = "src/fresco_json.py"
+VERSIONFILE = "src/fresco_json/__init__.py"
 
 
 def get_version():
