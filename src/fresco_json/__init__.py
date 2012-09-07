@@ -2,7 +2,7 @@
 Utilities for serializing to/from JSON.
 
 Objects that are JSON serializable need to be adapted to
-:class:`zenzero.interfaces.IJSONDumpable`.
+:class:`fresco_json.interfaces.IJSONDumpable`.
 
 """
 from __future__ import absolute_import
